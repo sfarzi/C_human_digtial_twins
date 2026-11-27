@@ -1,0 +1,62 @@
+# @package _global_
+dataset:
+  _target_: models.g_formula.data.alpaca.dataset.AlpacaDatasetCollection
+  name: alpaca
+  path: models/g_formula/data/alpaca/normal_arm.csv
+  placebo_path: models/g_formula/data/alpaca/placebo_arm.csv
+  statin_path: models/g_formula/data/alpaca/statin_treatment_arm.csv
+  seed: ${exp.seed}
+  val_fraction: 0.2
+  test_fraction: 0.2
+  min_visits: 2
+  max_seq_length:
+  projection_horizon: 9
+  holdout_ratio: 0.1
+  val_batch_size: 256
+  treatment_mode: multilabel
+  autoregressive: true
+  n_treatment_seq: 5
+  n_treatments_seq: 5
+
+model:
+  name: chdt
+  dim_treatments: 1
+  dim_vitals: 11
+  dim_static_features: 10
+  dim_outcomes: 1
+  chdt:
+    _target_: models.CHDT.chdt.CHDT
+    tune_hparams: false
+    compute_outcome_classification_metrics: true
+    outcome_type: categorical
+    num_outcome_classes: 2
+    outcome_class_values: [0, 1]
+    loss_weights: [3.0, 1.0]
+    use_time_gap: true
+    use_reverse_component_conditioning: true
+    num_comp: 13
+    comp_sizes: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    mc_samples: 5
+    fit_vitals: true
+    optimizer:
+      optimizer_cls: adam
+      learning_rate: 0.01
+      weight_decay: 0.0
+      lr_scheduler: false
+      momentum: 0.0
+    num_layer: 3
+    batch_size: 64
+    seq_hidden_units: 128
+    fc_hidden_units: 128
+    dropout_rate: 0.2
+    r_size: 32
+
+exp:
+  seed: 100
+  gpus: [0]
+  max_epochs: 50
+  logging: false
+  unscale_rmse: false
+  percentage_rmse: false
+  save_generative_horizons: false
+  generative_horizons_dir:
